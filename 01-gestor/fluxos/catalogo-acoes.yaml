@@ -1,0 +1,126 @@
+# catalogo-acoes.yaml -- o que cada decisão do gestor gera
+#
+# Lido pela skill /sessao. Na sessão o gestor diz a decisão em uma frase ("delega pra Ana,
+# prazo sexta"); a sessão escolhe a DECISÃO abaixo e monta as OPERAÇÕES que ela gera.
+#
+# Dois tipos de operação:
+#   fila   -- sai do repositório (Kanboard, rascunho de e-mail, mensagem pronta, agenda). Entra na fila
+#             só depois de o gestor aprovar a linha na sessão, e roda no /executar:
+#             bun run 01-gestor/ferramentas/fila.ts nova --qg <QG> --tipo <tipo> --payload '<json>' --aprovado-por <nome>
+#   local  -- fica no repositório (estado, prazo, nota, restrito). A sessão grava na hora com gestor.ts.
+#
+# Mudou o jeito de fazer? Edite aqui (modo de edição): a sessão propõe o diff, o gestor aprova.
+
+decisoes:
+  delegar:
+    quando: "alguém da equipe vai fazer; trabalho de produção"
+    gera:
+      - fila: kanboard.criar           # na coluna_padrao do config.yaml, com dono e prazo
+      - fila: aviso.pessoa             # só se o prazo for em menos de 5 dias ou o gestor pedir; senão o board basta
+    qg_apos: concluida                 # a QG sai da gestão; o acompanhamento é no board
+    varias: "uma QG pode gerar vários kanboard.criar, um por pessoa ou área"
+  responder:
+    quando: "quem escreveu precisa de um retorno"
+    gera:
+      - fila: email.rascunho           # modelo em respostas-padrao.md; envio é sempre do gestor, pelo webmail
+    qg_apos: concluida                 # aguardando, se a resposta pede algo de volta
+  escrever:
+    quando: "e-mail que não é resposta: para quem não escreveu, para vários, ou com arquivo anexo"
+    gera:
+      - fila: email.novo               # rascunho novo na caixa; o gestor só revisa e clica em Enviar
+    qg_apos: aguardando                # concluida, se não espera nada de volta
+  perguntar:
+    quando: "falta informação de alguém"
+    por_destino:
+      presencial: { local: lembrete }                        # "falar com X sobre Y" no painel; sem mensagem
+      equipe: { fila: aviso.pessoa }
+      externo: { fila: "email.rascunho (se a QG tem o e-mail da pessoa) ou email.novo" }
+    qg_apos: aguardando
+    lembrar_em_dias: 5                 # prazo da QG = hoje + 5, para voltar ao painel
+  solicitar:
+    quando: "pedir produção a uma área"
+    gera:
+      - fila: kanboard.criar           # categoria da área (contatos.yaml, setores); dono é quem o gestor indicar
+      - fila: aviso.pessoa             # ao dono, se o prazo for em menos de 5 dias ou o gestor pedir
+    dono: "sem referência por área: se o gestor não disse quem faz, a sessão pergunta \"quem?\""
+    qg_apos: concluida
+  acompanhar:
+    quando: "card ou pedido andou e quem pediu precisa saber"
+    gera:
+      - fila: kanboard.comentar        # ou email.rascunho ao solicitante
+    qg_apos: aguardando
+  ajustar_card:
+    quando: "card que já existe: mover, trocar prazo ou dono, quebrar em subtarefas, comentar"
+    gera:
+      - fila: [kanboard.mover, kanboard.prazo, kanboard.dono, kanboard.subtarefa, kanboard.comentar, kanboard.descricao, kanboard.categoria]
+    regra: "mover só com decisão explícita do gestor, nunca por inferência"
+    qg_apos: concluida
+  avisar_equipe:
+    quando: "lembrete de recorrente para a equipe (QG tipo avisar_equipe)"
+    gera:
+      - fila: aviso.pessoa             # para: o grupo da equipe em contatos.yaml; texto = nota "mensagem:" da QG
+    qg_apos: concluida
+  juntar_no_recado:
+    quando: "recado à equipe que pode esperar para sair junto com outros"
+    gera:
+      - local: "qg-atualizar --estado aguardando --nota \"recado: <texto>\""
+    depois: "quando o gestor disser 'manda o recado', a sessão junta as notas 'recado:' abertas num único aviso.pessoa ao grupo (bullets, voz do gestor)"
+  envio_na_hora:
+    quando: "o gestor prefere mandar ele mesmo, na hora, o texto proposto (WhatsApp ou webmail)"
+    gera:
+      - local: "qg-atualizar --estado aguardando --prazo <retorno> --nota \"<o que foi enviado>\""
+    regra: "nada na fila; uma mensagem por destinatário, juntando as QGs do mesmo destinatário"
+  lembrar:
+    gera: [{ local: "qg-atualizar --prazo AAAA-MM-DD --estado aguardando" }]
+  anotar:
+    gera: [{ local: "qg-atualizar --nota ... --estado concluida --destino anotado" }]
+  anotar_restrito:
+    gera: [{ local: "entrada datada em 01-gestor/restrito/<arquivo>.md; QG --sensivel true --destino restrito" }]
+    regra: "nada sobre a situação de uma pessoa vai para a fila, para o board ou para o registro"
+  ja_resolvi:
+    gera: [{ local: "qg-atualizar --estado concluida --tempo-min N" }]
+    pede: tempo_gestao_min
+  arquivar:
+    gera: [{ local: "qg-atualizar --estado descartada --destino arquivada" }]
+  ruido:
+    gera: [{ local: "gestor.ts ruido-adicionar ... + qg-atualizar --estado descartada --destino ruido" }]
+
+# Payload de cada operação da fila (fila.ts valida e resolve nomes para IDs do board).
+# Nomes de pessoa, coluna e categoria podem ir por extenso: "Ana", "Em andamento", "Comunicação Visual".
+operacoes:
+  kanboard.criar:
+    exige: [titulo, dono, prazo]              # dono e prazo só são dispensados numa coluna "Baú de tarefas"
+    opcional: [projeto, coluna, categoria, solicitante, contato, origem, pronto, proximo_passo, descricao, subtarefas]
+    titulo: "Projeto ou solicitante: verbo + objeto (ex.: \"Diretoria: relatório do semestre\")"
+    descricao: "montada no modelo do card: Solicitante · Contato · Origem (+ QG) · O que é \"pronto\" · Próximo passo"
+  kanboard.mover:      { exige: [card, coluna], opcional: [projeto] }
+  kanboard.comentar:   { exige: [card, texto], voz: "a do gestor, curta: uma linha de contexto + o pedido" }
+  kanboard.prazo:      { exige: [card, prazo] }
+  kanboard.dono:       { exige: [card, dono] }
+  kanboard.subtarefa:  { exige: [card, "titulo ou titulos"], opcional: [dono] }
+  kanboard.descricao:  { exige: [card, texto], nota: "substitui a descrição inteira: a sessão lê a atual e mostra a nova completa antes" }
+  kanboard.categoria:  { exige: [card, categoria], opcional: [projeto] }
+  email.rascunho:
+    exige: [corpo]
+    opcional: [conta, arquivo, todos]         # conta padrão pessoal; arquivo padrão = e-mail ligado à QG
+    voz: "_configuracao/voz/setor.md para externos e em nome do setor; gestor.md para recado pessoal"
+  email.novo:
+    exige: [para, assunto, corpo]             # para e cc: nome com email em contatos.yaml, "Nome <x@ifes.edu.br>" ou o endereço
+    opcional: [conta, cc, anexos]             # conta padrão pessoal; anexos = lista de caminhos a partir da raiz
+    anexos: "até 15 MB no total; nunca .env nem 01-gestor/restrito/"
+    voz: "a mesma do email.rascunho"
+  aviso.pessoa:
+    exige: [para, texto]
+    opcional: [canal]                         # padrão: canal_direto de contatos.yaml, senão whatsapp
+    nota: "o assistente não envia: o executar devolve o texto (e o link do WhatsApp) para o gestor enviar"
+  # Agendas Google, pela ponte _pontes/calendario. Só agendas de agendas.lista do config.yaml.
+  agenda.criar:
+    exige: [agenda, titulo, inicio, fim]      # agenda = nome ou id do config.yaml
+    opcional: [local, descricao]
+    datas: "dia inteiro AAAA-MM-DD (fim = último dia); com hora AAAA-MM-DDTHH:MM"
+  agenda.alterar:
+    exige: [agenda, evento]                   # evento = id, do listar da ponte
+    opcional: [titulo, local, descricao, inicio, fim]   # inicio e fim sempre juntos
+  agenda.cancelar:
+    exige: [agenda, ocorrencias]              # lista de ids de ocorrência de série
+    nota: "cancela só as ocorrências; a série continua. A ponte não apaga evento"

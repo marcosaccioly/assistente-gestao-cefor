@@ -1,0 +1,20 @@
+# Credenciais: nunca no git.
+.env
+.env.*
+!.env.example
+
+# E-mails brutos e capturas: transitórios, com dado de terceiros.
+01-gestor/_entrada/*
+!01-gestor/_entrada/.gitkeep
+
+# Notas sobre pessoas da equipe: só na máquina do gestor.
+01-gestor/restrito/*
+!01-gestor/restrito/README.md
+
+# Quadro derivado do registro, refeito a cada gravação.
+operacoes/painel/qgs.md
+
+node_modules/
+*.log
+.DS_Store
+Thumbs.db

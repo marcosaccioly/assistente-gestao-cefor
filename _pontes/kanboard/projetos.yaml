@@ -1,0 +1,6 @@
+# projetos.yaml -- colunas e categorias dos seus boards (nomes -> ids)
+#
+# Gerado por: bun run _pontes/kanboard/mapear.ts --projetos <id>,<id>
+# Vazio até você rodar o mapear. Sem ele, a fila não cria nem move card por nome.
+
+projetos: []

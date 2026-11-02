@@ -1,0 +1,30 @@
+# contatos.yaml -- como se pede a cada pessoa ou setor
+#
+# Lido pela skill /sessao e por 01-gestor/ferramentas/fila.ts (apelidos, canal do aviso, e-mail do email.novo).
+# Os IDs do Kanboard e o vínculo de cada pessoa ficam em _pontes/kanboard/usuarios.yaml;
+# aqui só o que muda o COMO pedir. Contato de trabalho pode ficar aqui; credencial e token, nunca.
+# Nada sobre a situação de uma pessoa (saúde, afastamento, desempenho): isso é do restrito/.
+#
+# Campos:
+#   apelidos:      como você chama a pessoa na sessão ("Zé"); acento não importa
+#   canal_padrao:  board      = o card no board basta
+#                  presencial = "perguntar" vira lembrete de conversa no painel, não mensagem
+#                  whatsapp   = recado vai como mensagem pronta para você enviar
+#   canal_direto:  para aviso com prazo curto ou cobrança (whatsapp: link pronto, você envia)
+#   email:         endereço para o email.novo ("manda pra Ana" vira o endereço dela)
+#   kanboard_user_id: id da pessoa no board (o mapear.ts mostra); sem ele, não dá para delegar card
+#
+# Cresce no uso: "pra fulano eu pergunto pessoalmente" na sessão vira diff aqui.
+
+pessoas: []
+  # Exemplos (apague e ponha a sua equipe):
+  # - { nome: Ana, kanboard_user_id: 101, apelidos: [Aninha], canal_padrao: board, canal_direto: whatsapp, email: nome@ifes.edu.br }
+  # - { nome: Diretoria, externo: true, canal_padrao: presencial }
+
+grupos: []
+  # - nome: grupo da equipe
+  #   canal: whatsapp                 # recados coletivos (avisar_equipe)
+
+setores: []
+  # Áreas a quem você pede produção. Sem referência fixa, a sessão pergunta "quem faz?".
+  # - { nome: design, categoria: "Comunicação Visual", como_pedir: "card no board para quem o gestor indicar" }

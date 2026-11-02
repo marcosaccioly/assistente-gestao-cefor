@@ -1,0 +1,23 @@
+# ruido.yaml -- o que NÃO vira questão de gestão
+#
+# Lido por 01-gestor/ferramentas/gestor.ts (insumos). Mensagem que casa com uma regra
+# aqui não aparece no painel: só soma na contagem "ruído separado".
+#
+# Cresce no uso: no bom-dia ou na sessão, "isso é ruído" vira uma regra nova
+#   bun run 01-gestor/ferramentas/gestor.ts ruido-adicionar --remetente "x@y" --motivo "..."
+#   bun run 01-gestor/ferramentas/gestor.ts ruido-adicionar --assunto "Newsletter" --conta pessoal --motivo "..."
+#
+# Campos de cada regra:
+#   remetente: trecho do endereço (ex.: "@facebookmail.com" pega o domínio inteiro)
+#   assunto:   trecho do assunto, sem diferenciar maiúsculas
+#   contas:    [pessoal, setor] -- omitido = vale para todas
+#   motivo:    por que é ruído (obrigatório; ajuda a revisar depois)
+#   desde:     data em que a regra entrou
+
+regras:
+  - remetente: "@facebookmail.com"
+    motivo: "notificações automáticas do Facebook"
+    desde: 2026-11-02
+  - remetente: "ifes-antispam"
+    motivo: "relatório automático do AntiSpam do Ifes"
+    desde: 2026-11-02

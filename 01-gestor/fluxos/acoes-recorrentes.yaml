@@ -1,0 +1,93 @@
+# acoes-recorrentes.yaml -- obrigações recorrentes da gestão e lembretes
+#
+# Lido por 01-gestor/ferramentas/gestor.ts (insumos), toda vez que o /bom-dia roda.
+# Ninguém precisa anotar: as questões de gestão (QGs) aparecem sozinhas.
+#
+# DATA DO PRAZO
+#   mensal: { dia: 10 }          todo dia 10 (dia 30 vira o último dia em fevereiro)
+#   mensal: { dia_util: 5 }      5º dia útil do mês (segunda a sexta; feriados não entram)
+#   datas:  [2026-10-31, ...]    datas explícitas (trimestral, anual, ciclos do PGD)
+#   ajustar_dia_util: true       prazo em fim de semana vai para a sexta anterior (padrão: não)
+#   referencia: mes_do_prazo | mes_anterior   qual mês aparece no texto ({mes})
+#
+# LEMBRETES (para quem e quando)
+#   para: gestor   abre UMA QG para você no maior dias_antes; a cor sobe nos seguintes:
+#                  [15, 5, 1] = amarelo a 15 dias, laranja a 5, vermelho a 1.
+#   para: equipe   em cada dias_antes, abre uma QG "Avisar a equipe" com a mensagem pronta.
+#                  Lembrete que cair em fim de semana é antecipado para a sexta.
+#   texto:  {mes} = mês de referência, {prazo} = data do prazo
+#
+# confirmado: false  faz a QG sair com "data a confirmar". Confira as datas com a sua unidade
+# (o /configurar pergunta) e troque para true. Recorrência que não vale para você: apague.
+
+recorrentes:
+
+  # --- PGD: plano de trabalho --------------------------------------------------
+  - id: pgd-plano-trabalho
+    nome: "PGD: planos de trabalho assinados no Petrvs"
+    mensal: { dia: 1 }
+    referencia: mes_do_prazo
+    confirmado: false
+    lembretes:
+      - para: equipe
+        dias_antes: [15, 10, 5]
+        texto: "Lembrete do PGD: o plano de trabalho de {mes} precisa estar criado e assinado no Petrvs até {prazo}. O mês não pode começar sem plano assinado."
+      - para: gestor
+        dias_antes: [15, 5, 1]
+        texto: "criar e assinar o seu plano de trabalho de {mes} e assinar os planos da equipe até {prazo}"
+
+  # --- PGD: registro de execução ------------------------------------------------
+  - id: pgd-registro-execucao
+    nome: "PGD: registro de execução do plano de trabalho"
+    mensal: { dia: 10 }
+    referencia: mes_anterior
+    confirmado: false
+    lembretes:
+      - para: equipe
+        dias_antes: [5, 0]
+        texto: "Lembrete do PGD: o registro de execução do plano de trabalho de {mes} vai até {prazo}. Registre no Petrvs."
+      - para: gestor
+        dias_antes: [5, 0]
+        texto: "fazer o seu registro de execução de {mes} no Petrvs até {prazo}"
+
+  # --- PGD: avaliação pelo gestor -----------------------------------------------
+  - id: pgd-avaliacao
+    nome: "PGD: avaliar os registros de execução da equipe"
+    mensal: { dia: 30 }
+    referencia: mes_anterior
+    confirmado: false
+    lembretes:
+      - para: gestor
+        dias_antes: [15, 5, 1]
+        texto: "avaliar no Petrvs os registros de execução de {mes} da equipe até {prazo}"
+
+  # --- Ponto e frequência --------------------------------------------------------
+  - id: homologacao-ponto
+    nome: "Homologar o ponto da equipe"
+    mensal: { dia_util: 5 }
+    referencia: mes_anterior
+    confirmado: false
+    lembretes:
+      - para: gestor
+        dias_antes: [5, 2, 0]
+        texto: "homologar o ponto de {mes} da equipe até {prazo}"
+
+  # --- Férias 2027: programação e homologação ------------------------------------
+  # Cronograma do Ofício 104/2026-REI-DRGP: cada data fecha o prazo de alteração do servidor e a
+  # janela de homologação da chefia para um mês de início. Datas já antecipadas quando caem em
+  # fim de semana ou feriado.
+  - id: ferias-2027-homologacao
+    nome: "Férias 2027: prazo de alteração e homologação no SIGRH"
+    datas: [2026-11-06, 2026-11-30, 2027-01-07, 2027-02-05, 2027-03-05, 2027-04-07,
+            2027-05-07, 2027-06-07, 2027-07-07, 2027-08-06, 2027-09-06, 2027-10-07]
+    confirmado: true
+    lembretes:
+      - para: equipe
+        dias_antes: [10]
+        texto: "Férias 2027: {prazo} é o último dia para cadastrar ou alterar no SIGRH as férias que começam no mês desta janela (ver o cronograma do Ofício 104/2026-REI-DRGP). Depois disso eu homologo."
+      - para: gestor
+        dias_antes: [7, 2, 0]
+        texto: "homologar no SIGRH, servidor por servidor, as férias 2027 da janela que fecha em {prazo} (mês de início no cronograma)"
+
+  # Outras do seu setor: relatórios, planos, reuniões de conselho. Diga no /bom-dia
+  # "isso é recorrente todo mês" e o assistente propõe a entrada aqui.

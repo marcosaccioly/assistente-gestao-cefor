@@ -1,0 +1,49 @@
+# config.yaml -- o que o assistente lê e onde escreve
+#
+# Preenchido pelo /configurar. Credenciais NUNCA aqui: ficam no .env da raiz.
+
+gestor:
+  nome: NOME_DO_GESTOR                # como você assina e aprova (vai em --aprovado-por)
+  setor: NOME_DO_SETOR                # ex.: "Coordenadoria de Registros Acadêmicos"
+
+caixas:
+  # conta: nome usado nos comandos (--conta) e na origem das QGs
+  # prefixo_env: prefixo das variáveis no .env (<PREFIXO>_EMAIL, _USUARIO, _SENHA, _DOMINIO, _EWS_URL)
+  # destino: pasta onde os e-mails lidos ficam (fora do git)
+  - conta: pessoal
+    prefixo_env: PESSOAL
+    destino: 01-gestor/_entrada/pessoal
+    janela_padrao_dias: 3             # na primeira varredura, use /bom-dia 7d
+    limite: 40
+  # Caixa do setor, se houver (tire o # das linhas abaixo e preencha SETOR_* no .env):
+  # - conta: setor
+  #   prefixo_env: SETOR
+  #   destino: 01-gestor/_entrada/setor
+  #   janela_padrao_dias: 3
+  #   limite: 40
+
+boards: []
+  # Boards do Kanboard que o bom-dia lê. O /configurar preenche com o mapear.ts. Exemplo:
+  # - id: 12
+  #   nome: "Meu setor - Atividades"
+
+kanboard:                             # escrita pela fila (01-gestor/ferramentas/fila.ts)
+  # projeto_padrao: 12                # board onde nascem os cards delegados
+  # coluna_padrao: "Em andamento"     # coluna onde o card nasce (nome como está no board)
+  # autor_id: 0                       # seu id de usuário no Kanboard (o mapear.ts preenche)
+
+painel:
+  parado_dias: 10                     # card aberto sem movimento há mais que isto aparece como parado
+  horizonte_dias: 30                  # prazos até aqui aparecem em "no radar"
+  registro_janela_dias: 7             # o bom-dia lê QGs abertas + as fechadas nos últimos N dias
+
+agendas:
+  # Agendas Google, pela ponte _pontes/calendario/ (conta CALENDARIO_CONTA do .env).
+  # Cada agenda precisa estar compartilhada com essa conta; `facade.ts testar` mostra o acesso.
+  # papel: ausencias | presenca | compromissos | compromissos_area | feriados
+  dias_a_frente: 14
+  lista: []
+  # Exemplo:
+  # - id: "voce@ifes.edu.br"
+  #   nome: "Minha agenda"
+  #   papel: compromissos

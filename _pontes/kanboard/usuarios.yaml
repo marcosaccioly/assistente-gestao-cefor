@@ -1,0 +1,6 @@
+# usuarios.yaml -- quem está nos seus boards (nome -> id)
+#
+# Gerado por: bun run _pontes/kanboard/mapear.ts --projetos <id>,<id>
+# Vazio até você rodar o mapear. Sem ele, a fila não delega card.
+
+usuarios: []
