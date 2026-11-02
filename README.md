@@ -4,7 +4,7 @@ Um assistente para o gestor não virar gargalo. Ele lê o que chega no e-mail, n
 
 Roda no seu computador, com o [Claude Code](https://claude.com/claude-code), sobre esta pasta. Não há servidor: o que o assistente sabe está em arquivos que você pode abrir e ler.
 
-**Guia completo, passo a passo:** _link da página de referência_
+**Guia completo, passo a passo:** https://claude.ai/artifact/7i4uZ7BxVrLRZ8GdvAJ8Jt
 
 ## O dia com o assistente
 
